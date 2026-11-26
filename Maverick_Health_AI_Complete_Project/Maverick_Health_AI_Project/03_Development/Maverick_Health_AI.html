@@ -1,0 +1,258 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Maverick Health AI</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: header, then a two-column band (case form | training data), then summary and results */
+:root {
+  --bg: #f1f5f6;
+  --surface: #ffffff;
+  --fg: #13262b;
+  --muted: #566d73;
+  --border: #d3dfe2;
+  --accent: #0f766e;
+  --accent-fg: #ffffff;
+  --ok: #26763f;
+  --ok-bg: #e2f3e8;
+  --warn: #9a5b05;
+  --warn-bg: #fbeed6;
+  --bad: #b3261e;
+  --bad-bg: #fbe4e2;
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-head: "Space Grotesk", "Inter", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d191c; --surface: #14252a; --fg: #e5f0f2; --muted: #90a8ae; --border: #26393f;
+    --accent: #4fd1c0; --accent-fg: #06201d;
+    --ok: #7fd49c; --ok-bg: #173a26; --warn: #f2b062; --warn-bg: #3d2c10; --bad: #ff9a92; --bad-bg: #44201e;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d191c; --surface: #14252a; --fg: #e5f0f2; --muted: #90a8ae; --border: #26393f;
+  --accent: #4fd1c0; --accent-fg: #06201d;
+  --ok: #7fd49c; --ok-bg: #173a26; --warn: #f2b062; --warn-bg: #3d2c10; --bad: #ff9a92; --bad-bg: #44201e;
+  color-scheme: dark;
+}
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--font-body); font-size: 15px; line-height: 1.55;
+  padding-block: 28px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 980px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+h1, h2 { font-family: var(--font-head); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(1.7rem, 5vw, 2.4rem); line-height: 1.1; }
+h2 { font-size: 1.1rem; }
+.eyebrow { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); font-weight: 600; margin: 0 0 6px; }
+.lead { color: var(--muted); max-width: 62ch; margin: 10px 0 0; }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 720px) { .cols { grid-template-columns: 1fr; } }
+.panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+.panel p { margin: 0; color: var(--muted); font-size: 14px; }
+label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 500; }
+input, select { font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 9px 10px; min-width: 0; }
+input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 420px) { .row2 { grid-template-columns: 1fr; } }
+.btns { display: flex; gap: 10px; flex-wrap: wrap; }
+button { font: inherit; font-weight: 600; border-radius: 6px; padding: 10px 16px; cursor: pointer; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-fg); }
+button.ghost { background: transparent; color: var(--fg); border-color: var(--border); }
+#msg { color: var(--bad); min-height: 1.2em; font-size: 13px; }
+.bars { display: flex; flex-direction: column; gap: 12px; }
+.bar-top { display: flex; justify-content: space-between; font-size: 13px; font-weight: 500; gap: 8px; }
+.bar-top span:last-child { color: var(--muted); font-variant-numeric: tabular-nums; font-weight: 400; }
+.track { position: relative; height: 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 5px; margin-top: 4px; }
+.fill { height: 100%; border-radius: 4px; background: var(--ok); }
+.fill.low { background: var(--warn); }
+.mark { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--fg); opacity: .55; }
+.summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+@media (max-width: 520px) { .summary { grid-template-columns: 1fr; } }
+.stat { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+.stat b { display: block; font-family: var(--font-head); font-size: 1.8rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.stat span { font-size: 13px; color: var(--muted); }
+#review { font-size: 14px; color: var(--muted); margin: 0; }
+#results { display: flex; flex-direction: column; gap: 12px; padding: 0; margin: 0; list-style: none; }
+.case { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.case-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
+.case-name { font-weight: 600; overflow-wrap: anywhere; }
+.case-meta { font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
+.pill { font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 99px; white-space: nowrap; }
+.pill.ok { color: var(--ok); background: var(--ok-bg); }
+.pill.warn { color: var(--warn); background: var(--warn-bg); }
+.pill.bad { color: var(--bad); background: var(--bad-bg); }
+.case ul { margin: 0; padding-left: 18px; font-size: 14px; }
+.tag { font-size: 11px; color: var(--muted); border: 1px solid var(--border); border-radius: 4px; padding: 1px 6px; margin-left: 6px; font-weight: 500; }
+.verdict { color: var(--muted); font-size: 14px; border-top: 1px solid var(--border); padding-top: 16px; margin: 0; }
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">SDG 3 · Good Health and Well-being · Team The Mavericks</p>
+    <h1>Maverick Health AI</h1>
+    <p class="lead">Before an AI result is used for a patient, this safety checker looks for low confidence, bias and privacy problems. Risky cases go to a doctor for human review.</p>
+  </header>
+
+  <div class="cols">
+    <form class="panel" id="caseForm" autocomplete="off">
+      <h2>Check a patient case</h2>
+      <label for="name">Patient name
+        <input id="name" type="text" placeholder="e.g. Ravi" maxlength="40">
+      </label>
+      <label for="prediction">AI prediction
+        <input id="prediction" type="text" placeholder="e.g. diabetes" maxlength="40">
+      </label>
+      <div class="row2">
+        <label for="conf">AI confidence (0 to 100)
+          <input id="conf" type="number" min="0" max="100" placeholder="e.g. 85">
+        </label>
+        <label for="group">Patient group
+          <select id="group"></select>
+        </label>
+      </div>
+      <label for="consent">Patient gave data consent?
+        <select id="consent"><option value="yes">Yes</option><option value="no">No</option></select>
+      </label>
+      <div id="msg" role="alert"></div>
+      <div class="btns">
+        <button type="submit">Check case</button>
+        <button type="button" class="ghost" id="clearBtn">Clear all cases</button>
+      </div>
+    </form>
+
+    <section class="panel">
+      <h2>What the AI learned from</h2>
+      <p>Records in the training data for each group. A group below 300 records (the dark line) is flagged for bias risk. These are sample numbers.</p>
+      <div class="bars" id="bars"></div>
+    </section>
+  </div>
+
+  <section class="summary" aria-label="Summary report">
+    <div class="stat"><b id="sTotal">0</b><span>Cases checked</span></div>
+    <div class="stat"><b id="sOk">0</b><span>Approved</span></div>
+    <div class="stat"><b id="sDoc">0</b><span>Sent to doctor</span></div>
+  </section>
+  <p id="review"></p>
+
+  <ul id="results"></ul>
+
+  <p class="verdict">AI helps diagnosis, but a bias check and human review make it safer and fairer for every patient.</p>
+</div>
+
+<script>
+// Sample data: how many past records the AI learned from, for each group
+var trainingData = { urban: 900, rural: 150, elderly: 200, children: 120 };
+var MIN_DATA = 300;  // fewer records than this = possible bias
+var MIN_CONF = 80;   // lower confidence than this = doctor must review
+var results = [];
+
+// The 3 checks from our Python program
+function runChecks(c) {
+  var warnings = [];
+  if (c.conf < MIN_CONF) warnings.push("Low confidence: the AI may be wrong");
+  if (trainingData[c.group] < MIN_DATA) warnings.push("Bias risk: little data for " + c.group + " patients");
+  if (c.consent !== "yes") warnings.push("Privacy risk: no consent to use this data");
+  c.warnings = warnings;
+  if (warnings.length === 0) { c.decision = "Approved (doctor still signs off)"; c.level = "ok"; }
+  else if (warnings.length === 1) { c.decision = "Needs human review"; c.level = "warn"; }
+  else { c.decision = "High risk: doctor must review"; c.level = "bad"; }
+  return c;
+}
+
+function el(tag, cls, text) {
+  var e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+
+function render() {
+  // summary
+  var review = results.filter(function (r) { return r.warnings.length > 0; });
+  document.getElementById("sTotal").textContent = results.length;
+  document.getElementById("sOk").textContent = results.length - review.length;
+  document.getElementById("sDoc").textContent = review.length;
+  document.getElementById("review").textContent = review.length
+    ? "Patients to review: " + review.map(function (r) { return r.name; }).join(", ")
+    : (results.length ? "No patients need review." : "No cases yet. Add one above.");
+
+  // case cards, newest first
+  var list = document.getElementById("results");
+  list.textContent = "";
+  results.slice().reverse().forEach(function (c) {
+    var li = el("li", "case");
+    var top = el("div", "case-top");
+    var name = el("div", "case-name", c.name);
+    if (c.sample) name.appendChild(el("span", "tag", "Sample"));
+    top.appendChild(name);
+    top.appendChild(el("span", "pill " + c.level, c.decision));
+    li.appendChild(top);
+    li.appendChild(el("div", "case-meta", c.prediction + " (" + c.conf + "% confidence) · " + c.group + " · consent: " + c.consent));
+    if (c.warnings.length) {
+      var ul = el("ul");
+      c.warnings.forEach(function (w) { ul.appendChild(el("li", "", w)); });
+      li.appendChild(ul);
+    }
+    list.appendChild(li);
+  });
+}
+
+function addCase(c) { results.push(runChecks(c)); render(); }
+
+// training data bars and group dropdown
+(function () {
+  var bars = document.getElementById("bars");
+  var select = document.getElementById("group");
+  Object.keys(trainingData).forEach(function (g) {
+    var n = trainingData[g];
+    select.appendChild(new Option(g.charAt(0).toUpperCase() + g.slice(1), g));
+    var row = el("div");
+    var top = el("div", "bar-top");
+    top.appendChild(el("span", "", g.charAt(0).toUpperCase() + g.slice(1)));
+    top.appendChild(el("span", "", n + " records" + (n < MIN_DATA ? " (below 300)" : "")));
+    var track = el("div", "track");
+    var fill = el("div", "fill" + (n < MIN_DATA ? " low" : ""));
+    fill.style.width = (n / 900 * 100) + "%";
+    var mark = el("div", "mark");
+    mark.style.left = (MIN_DATA / 900 * 100) + "%";
+    track.appendChild(fill);
+    track.appendChild(mark);
+    row.appendChild(top);
+    row.appendChild(track);
+    bars.appendChild(row);
+  });
+})();
+
+document.getElementById("caseForm").addEventListener("submit", function (e) {
+  e.preventDefault();
+  var name = document.getElementById("name").value.trim();
+  var prediction = document.getElementById("prediction").value.trim();
+  var conf = parseInt(document.getElementById("conf").value, 10);
+  var msg = document.getElementById("msg");
+  if (!name || !prediction) { msg.textContent = "Enter the patient name and the AI prediction."; return; }
+  if (isNaN(conf) || conf < 0 || conf > 100) { msg.textContent = "Confidence must be a number from 0 to 100."; return; }
+  msg.textContent = "";
+  addCase({
+    name: name, prediction: prediction, conf: conf,
+    group: document.getElementById("group").value,
+    consent: document.getElementById("consent").value
+  });
+  document.getElementById("name").value = "";
+  document.getElementById("prediction").value = "";
+  document.getElementById("conf").value = "";
+  document.getElementById("name").focus();
+});
+
+document.getElementById("clearBtn").addEventListener("click", function () { results = []; render(); });
+
+// Start with the 3 sample cases from our Python test run
+addCase({ name: "Dhruv", prediction: "Cancer", conf: 89, group: "urban", consent: "yes", sample: true });
+addCase({ name: "Pawan", prediction: "Diabetes", conf: 66, group: "children", consent: "no", sample: true });
+addCase({ name: "Manish", prediction: "Viral", conf: 95, group: "elderly", consent: "yes", sample: true });
+</script>
+
+</body></html>
